@@ -160,12 +160,17 @@
 
     #unity-canvas,
     canvas.unity-mobile {
-      position: relative !important;
+      /* 關鍵修正：將畫布絕對定位死鎖在容器內，無視 Unity 腳本干擾 */
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      transform: none !important; /* 清除所有被強制注入的偏移 */
+      
       width: 100% !important;
       height: 100% !important;
       display: block !important;
-      /* 補上這行！強制內部畫布置中，防止 Unity 腳本干擾 */
-      margin: 0 auto !important; 
+      margin: 0 !important; 
+      padding: 0 !important;
     }
 
     #unity-footer {
