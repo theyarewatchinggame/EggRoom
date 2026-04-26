@@ -9,122 +9,173 @@
     <link rel="stylesheet" href="TemplateData/style.css">
 
     <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    background: #000;
+    overflow-x: hidden;
+    overflow-y: auto; /* 保留上下滑動 */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: #000;
+    font-family: Arial, sans-serif;
+  }
+
+  #stage {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 0 20px;
+    box-sizing: border-box;
+    overflow: visible;
+  }
+
+  #unity-container {
+    position: relative;
+    width: min(calc(100vw - 24px), calc((100dvh - 32px) * 16 / 9));
+    aspect-ratio: 16 / 9;
+    margin: 0 auto;
+    background: #000;
+    overflow: hidden;
+  }
+
+  #unity-canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    background: #000;
+    touch-action: manipulation;
+  }
+
+  #unity-loading-bar {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    width: min(80%, 400px);
+    display: none;
+  }
+
+  #unity-warning {
+    position: absolute;
+    left: 50%;
+    top: 20px;
+    transform: translateX(-50%);
+    z-index: 30;
+    width: calc(100% - 20px);
+    max-width: 600px;
+  }
+
+  #unity-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 25;
+  }
+
+  #ending-video-overlay {
+    position: absolute;
+    left: 6%;
+    top: 23%;
+    width: 28%;
+    height: 30%;
+    z-index: 999999;
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    overflow: hidden;
+    pointer-events: auto;
+    transition: opacity 0.35s ease;
+    background: transparent;
+    border: 0;
+    box-sizing: border-box;
+  }
+
+  #ending-video-overlay.visible {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  #ending-video-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #000;
+  }
+
+  /* 桌機 */
+  @media (min-width: 1025px) {
+    #stage {
+      min-height: 100vh;
+      align-items: center;
+      padding: 12px 0 20px;
+    }
+
+    #unity-container {
+      width: min(calc(100vw - 24px), calc((100vh - 32px) * 16 / 9));
+      max-width: 100vw;
+      max-height: 100vh;
+    }
+  }
+
+  /* ======= 手機與平板 (無論直向或橫向) ======= */
+    @media (max-width: 1024px) {
+      
       html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        background: #000;
-        overflow: hidden;
+        overflow-y: auto !important; /* 1. 絕對保證可以上下滑動 */
+        height: auto !important;
+        display: block !important;   /* 取消 body flex，防止蘋果手機亂縮放 */
       }
 
-      #unity-container {
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
-        overflow: hidden;
-        background: #000;
+      #page-wrap {
+        display: block;
+        padding: 40px 0; /* 2. 上下留出黑邊，證明它不是滿版全螢幕 */
+      }
+
+      /* 3. 最關鍵：強制覆蓋 Unity 自動加上的全螢幕死鎖屬性 */
+      #unity-container, .unity-mobile {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        transform: none !important;
+        
+        /* 4. 控制大小：寬度佔螢幕 90%，高度自動鎖死 16:10 比例 */
+        width: 78vw !important; 
+        height: auto !important;
+        aspect-ratio: 960 / 600 !important; 
+        margin: 0 auto !important; /* 確保遊戲在正中間 */
       }
 
       #unity-canvas {
+        /* 5. 防裁切：絕對定位填滿容器，絕不變形 */
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
         width: 100% !important;
         height: 100% !important;
-        display: block;
-        background: #000;
-      }
-
-      #unity-loading-bar {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 20;
-      }
-
-      #unity-warning {
-        position: absolute;
-        top: 12px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 30;
       }
 
       #unity-footer {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 20;
+        display: none !important; /* 手機版直接隱藏底條，避免干擾畫面 */
       }
-
-      /* YouTube overlay */
-      #youtubeOverlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.18);
-        z-index: 9999;
-        pointer-events: none;
-      }
-
-      #youtubePanel {
-        position: absolute;
-        left: 3%;
-        top: 34%;
-        transform: translateY(-50%);
-        width: 46vw;
-        max-width: 620px;
-        aspect-ratio: 16 / 9;
-        background: rgba(20, 12, 30, 0.92);
-        border: 3px solid #d8b4ff;
-        border-radius: 22px;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-        overflow: hidden;
-        pointer-events: auto;
-      }
-
-      #youtubeFrame {
-        width: 100%;
-        height: 100%;
-        display: block;
-        background: #000;
-      }
-
-      #youtubeClose {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        padding: 6px 10px;
-        border: none;
-        border-radius: 10px;
-        background: rgba(0, 0, 0, 0.65);
-        color: white;
-        font-size: 14px;
-        cursor: pointer;
-        z-index: 2;
-      }
-
-      @media (max-width: 900px) {
-        #youtubePanel {
-          left: 2%;
-          top: 30%;
-          width: 52vw;
-          max-width: none;
-        }
-      }
-
-      @media (max-width: 700px) and (orientation: portrait) {
-        #youtubePanel {
-          left: 50%;
-          top: 26%;
-          transform: translate(-50%, -50%);
-          width: 92vw;
-          max-width: none;
-          border-radius: 18px;
-        }
-      }
-    </style>
+    }
+</style>
   </head>
 
   <body>
