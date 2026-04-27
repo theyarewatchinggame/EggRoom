@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Unity WebGL Player | eggroom</title>
+<link rel="shortcut icon" href="TemplateData/favicon.ico">
+<link rel="stylesheet" href="TemplateData/style.css">
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    background: #000;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    min-height: 100dvh;
+    background: #000;
+    font-family: Arial, sans-serif;
+  }
+
+  #stage {
+    position: relative;
+    width: 100%;
+    min-height: 100dvh;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 0 20px;
+    box-sizing: border-box;
+  }
+
+  #unity-container {
+    position: relative !important;
+    width: min(calc(100% - 24px), calc((100dvh - 32px) * 16 / 9));
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+    margin: auto;
+    background: #000;
+    overflow: hidden;
+  }
+
+  #unity-canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    background: #000;
+    touch-action: manipulation;
+  }
+
+  /* YouTube 播放層：桌機版位置 */
+  #ending-video-overlay {
+    position: absolute;
+    left: 6%;
+    top: 23%;
+    width: 28%;
+    height: 30%;
+    z-index: 999999;
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    background: #000;
+    transition: opacity 0.35s ease;
+  }
+
+  #ending-video-overlay.visible {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  #ending-video-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #000;
+  }
+
+  /* 手機版適配 */
+  @media (max-width: 1024px) {
+    #stage {
+      padding: 20px 0 28px !important; 
+    }
+
+    #unity-container {
+      width: 90% !important; /* 增加手機版顯示寬度 */
+    }
+
+    #ending-video-overlay {
+      /* 手機版影片放大，避免看不清 */
+      left: 5% !important;
+      top: 10% !important;
+      width: 90% !important;
+      height: 80% !important;
+    }
+  }
+
+  #unity-loading-bar {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    width: min(80%, 400px);
+    display: none;
+  }
+
+  #unity-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 25;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+  }
+</style>
+</head>
+
+<body>
+<div id="stage">
+  <div id="unity-container">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+
+    <div id="ending-video-overlay">
+      <iframe
+        id="ending-video-frame"
+        src=""
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+    </div>
+
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+
+    <div id="unity-warning"></div>
+
+    <div id="unity-footer">
+      <div id="unity-webgl-logo"></div>
+      <div id="unity-build-title">eggroom</div>
+      <div id="unity-fullscreen-button"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const stage = document.querySelector("#stage");
+  const canvas = document.querySelector("#unity-canvas");
+  const loadingBar = document.querySelector("#unity-loading-bar");
+  const progressBarFull = document.querySelector("#unity-progress-bar-full");
+  const fullscreenButton = document.querySelector("#unity-fullscreen-button");
+
+  const buildUrl = "Build";
+  const loaderUrl = buildUrl + "/0427.loader.js";
+
+  const config = {
+    dataUrl: buildUrl + "/0427.data.unityweb",
+    frameworkUrl: buildUrl + "/0427.framework.js.unityweb",
+    codeUrl: buildUrl + "/0427.wasm.unityweb",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "DefaultCompany",
+    productName: "eggroom",
+    productVersion: "0.1.0",
+  };
+
+  loadingBar.style.display = "block";
+
+  const script = document.createElement("script");
+  script.src = loaderUrl;
+  script.onload = () => {
+    createUnityInstance(canvas, config, (progress) => {
+      progressBarFull.style.width = (100 * progress) + "%";
+    }).then((unityInstance) => {
+      loadingBar.style.display = "none";
+      fullscreenButton.onclick = () => {
+        if (stage.requestFullscreen) stage.requestFullscreen();
+        else if (stage.webkitRequestFullscreen) stage.webkitRequestFullscreen();
+      };
+      window.dispatchEvent(new Event("resize"));
+    }).catch((message) => alert(message));
+  };
+  document.body.appendChild(script);
+
+  // --- 給 Unity 呼叫的 JavaScript 函式 ---
+  window.ShowYoutubeVideo = function (videoId) {
+    const overlay = document.getElementById("ending-video-overlay");
+    const iframe = document.getElementById("ending-video-frame");
+    if (!overlay || !iframe) return;
+
+    iframe.src = ""; // 先清空，確保重新載入
+    setTimeout(() => {
+      iframe.src = "https://www.youtube.com/embed/" + videoId + 
+                   "?autoplay=1&mute=1&playsinline=1&rel=0&controls=1";
+      overlay.classList.add("visible");
+    }, 80);
+  };
+
+  window.HideYoutubeVideo = function () {
+    const overlay = document.getElementById("ending-video-overlay");
+    const iframe = document.getElementById("ending-video-frame");
+    if (iframe) iframe.src = ""; 
+    if (overlay) overlay.classList.remove("visible");
+  };
+</script>
+</body>
+</html>
