@@ -88,7 +88,28 @@
     bottom: 0;
     z-index: 25;
   }
+#youtubeOverlay {
+  position: absolute;   /* ❗不是 fixed */
+  left: 6%;
+  top: 23%;
+  width: 28%;
+  height: 30%;
 
+  z-index: 999999;
+  display: none;
+
+  pointer-events: auto;
+}
+
+#youtubePanel {
+  width: 100%;
+  height: 100%;
+}
+
+#youtubeFrame {
+  width: 100%;
+  height: 100%;
+}
   #ending-video-overlay {
     position: absolute;
     left: 6%;
@@ -178,29 +199,17 @@
   </head>
 
   <body>
-    <div id="youtubeOverlay">
-      <div id="youtubePanel">
-        <iframe
-          id="youtubeFrame"
-          src=""
-          frameborder="0"
-          allow="autoplay; encrypted-media; picture-in-picture"
-          allowfullscreen>
-        </iframe>
-
-        <button
-          id="youtubeClose"
-          onclick="
-            document.getElementById('youtubeFrame').src='';
-            document.getElementById('youtubeOverlay').style.display='none';
-          "
-        >✕</button>
-      </div>
+   
     </div>
 
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
-
+    
+  <div id="youtubeOverlay">
+    <div id="youtubePanel">
+      <iframe id="youtubeFrame"></iframe>
+    </div>
+  </div>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
